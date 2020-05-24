@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Homeberry</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="cancel">Cancel</string>
+    <string name="oops">Oops</string>
+
+    <string name="main_empty_state_message">There are no requests created. To create requests, add them in settings</string>
+    <string name="main_empty_state_button">Open settings</string>
+    <string name="main_reboot_dialog_message">Are you sure you want to restart your Raspberry Pi?</string>
+    <string name="main_shutdown_dialog_message">Are you sure you want to shut down your Raspberry Pi?</string>
+    <string name="main_progress_message">Calling request %s</string>
+
+    <string name="error_request_call_title">Error calling \"%s\" request</string>
+    <string name="error_request_connection_title">Could not connect</string>
+    <string name="error_request_connection_message">Could not connect to %s. Make sure that the URL is correct and that you are connected to the Internet.</string>
+    <string name="error_app_not_found">Could not found app with package %s</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_menu_export">Export</string>
+    <string name="settings_menu_import">Import</string>
+    <string name="settings_base_url_hint">Base Url</string>
+    <string name="settings_requests_title">Requests</string>
+    <string name="settings_export_message">Export config as JSON file</string>
+    <string name="settings_delete_dialog_message">Do you really want to delete this request?</string>
+    <string name="settings_error_import_invalid_json">Selected file is not a valid JSON file</string>
+    <string name="settings_error_import_invalid_config">Selected file is not a HomeBerry configuration</string>
+    <string name="settings_item_request_name_hint">Request name</string>
+    <string name="settings_item_endpoint_url_hint">Endpoint URL</string>
+    <string name="settings_item_launch_app">Launch an app after sending request</string>
+    <string name="settings_item_app_package_hint">App package name</string>
+
+</resources>
