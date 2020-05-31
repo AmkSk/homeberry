@@ -15,9 +15,9 @@ import kotlinx.coroutines.withContext
 import sk.amk.homeberry.HomeberryApp
 import sk.amk.homeberry.HomeberryApp.Companion.BASE_URL_KEY
 import sk.amk.homeberry.HomeberryApp.Companion.DEFAULT_BASE_URL
+
 import sk.amk.homeberry.model.Config
 import sk.amk.homeberry.model.HomeberryRequest
-
 
 /**
  * @author Andrej Martinák <andrej.martinak@gmail.com>
@@ -32,14 +32,14 @@ class SettingsViewModel(val app: Application) : AndroidViewModel(app) {
 
     private val moshi: Moshi by lazy {
         Moshi.Builder()
-                .add(KotlinJsonAdapterFactory())
-                .build()
+            .add(KotlinJsonAdapterFactory())
+            .build()
     }
 
     init {
         baseUrl.value = (app as HomeberryApp).sharedPreferences.getString(
-                BASE_URL_KEY,
-                DEFAULT_BASE_URL
+            BASE_URL_KEY,
+            DEFAULT_BASE_URL
         )!!
 
         viewModelScope.launch {
@@ -52,10 +52,11 @@ class SettingsViewModel(val app: Application) : AndroidViewModel(app) {
 
     fun updateBaseUrl(url: String) {
         baseUrl.value = url
+
         (app as HomeberryApp).sharedPreferences
-                .edit()
-                .putString(HomeberryApp.BASE_URL_KEY, url)
-                .apply()
+            .edit()
+            .putString(BASE_URL_KEY, url)
+            .apply()
     }
 
     fun createNewRequest(request: HomeberryRequest) {
@@ -87,13 +88,12 @@ class SettingsViewModel(val app: Application) : AndroidViewModel(app) {
     fun createConfigJson(): String {
         val config = Config(baseUrl.value!!, requests)
 
-        val jsonAdapter: JsonAdapter<Config> = moshi.adapter<Config>(Config::class.java)
-                .indent("    ")
+        val jsonAdapter: JsonAdapter<Config> = moshi.adapter(Config::class.java).indent("    ")
         return jsonAdapter.toJson(config)
     }
 
     fun importConfig(configJson: String) {
-        val jsonAdapter: JsonAdapter<Config> = moshi.adapter<Config>(Config::class.java)
+        val jsonAdapter: JsonAdapter<Config> = moshi.adapter(Config::class.java)
         try {
             jsonAdapter.fromJson(configJson)?.run {
                 this@SettingsViewModel.requests = requests.toMutableList()

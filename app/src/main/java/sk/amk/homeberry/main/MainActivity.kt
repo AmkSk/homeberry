@@ -19,11 +19,13 @@ import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onCancel
 import com.afollestad.materialdialogs.customview.customView
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.buttonContainer
+import kotlinx.android.synthetic.main.activity_main.buttonOpenSettings
+import kotlinx.android.synthetic.main.activity_main.toolbar
+import kotlinx.android.synthetic.main.activity_main.txtEmptyState
 import sk.amk.homeberry.R
 import sk.amk.homeberry.model.HomeberryRequest
 import sk.amk.homeberry.settings.SettingsActivity
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -73,20 +75,21 @@ class MainActivity : AppCompatActivity() {
             button.text = request.name
             button.setOnClickListener { viewModel.callRequest(request) }
             val params = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            params.setMargins(getMargin(), 0, getMargin(), getMargin())
+            val buttonMargin = calculateButtonMargin()
+            params.setMargins(buttonMargin, 0, buttonMargin, buttonMargin)
             button.layoutParams = params
             buttonContainer.addView(button)
         }
     }
 
-    private fun getMargin(): Int {
+    private fun calculateButtonMargin(): Int {
         return TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                16f,
-                resources.displayMetrics
+            TypedValue.COMPLEX_UNIT_DIP,
+            BUTTON_MARGIN_DP,
+            resources.displayMetrics
         ).toInt()
     }
 
@@ -130,11 +133,11 @@ class MainActivity : AppCompatActivity() {
     private fun showProgressDialog(request: HomeberryRequest) {
         val progressView = layoutInflater.inflate(R.layout.dialog_progress, null, false)
         progressView.findViewById<TextView>(R.id.txtDialogMessage).text =
-                getString(R.string.main_progress_message, "${viewModel.baseUrl}/${request.endpoint}")
+            getString(R.string.main_progress_message, "${viewModel.baseUrl}/${request.endpoint}")
         progressDialog = MaterialDialog(this)
-                .customView(view = progressView)
-                .cancelOnTouchOutside(false)
-                .onCancel { viewModel.cancelRequest() }
+            .customView(view = progressView)
+            .cancelOnTouchOutside(false)
+            .onCancel { viewModel.cancelRequest() }
 
         progressDialog?.show()
     }
@@ -147,9 +150,9 @@ class MainActivity : AppCompatActivity() {
 
             if (appOpened.not()) {
                 Toast.makeText(
-                        this,
-                        getString(R.string.error_app_not_found, request.openAppPackageName),
-                        Toast.LENGTH_SHORT
+                    this,
+                    getString(R.string.error_app_not_found, request.openAppPackageName),
+                    Toast.LENGTH_SHORT
                 ).show()
             }
         }
@@ -174,8 +177,6 @@ class MainActivity : AppCompatActivity() {
     private fun openSettings() {
         viewModel.cancelRequest()
         startActivity(Intent(this, SettingsActivity::class.java))
-//                overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-        // todo add transition animation
     }
 
     /** Open another app.
@@ -193,5 +194,9 @@ class MainActivity : AppCompatActivity() {
         } catch (e: ActivityNotFoundException) {
             return false
         }
+    }
+
+    companion object {
+        const val BUTTON_MARGIN_DP = 16f
     }
 }

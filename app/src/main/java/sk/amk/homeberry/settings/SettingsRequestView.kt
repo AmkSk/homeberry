@@ -15,14 +15,14 @@ import sk.amk.homeberry.R
 import sk.amk.homeberry.model.HomeberryRequest
 
 /**
- * @author Andrej Martinák <andrej.martinak@eman.cz>
+ * @author Andrej Martinák <andrej.martinak@gmail.com>
  */
 object SettingsRequestView {
 
     fun create(
-            activity: SettingsActivity,
-            viewModel: SettingsViewModel,
-            request: HomeberryRequest
+        activity: SettingsActivity,
+        viewModel: SettingsViewModel,
+        request: HomeberryRequest
     ): View {
         val layoutInflater = LayoutInflater.from(activity)
         val view = layoutInflater.inflate(R.layout.layout_request_item, null, false)
@@ -50,7 +50,7 @@ object SettingsRequestView {
         }
 
         editTextEndpointUrl.addTextChangedListener {
-            txtEndpointUrl.text = "${viewModel.baseUrl.value}/${it.toString()}"
+            txtEndpointUrl.text = "${viewModel.baseUrl.value}/$it"
             request.endpoint = it.toString()
             viewModel.updateRequest(request)
         }

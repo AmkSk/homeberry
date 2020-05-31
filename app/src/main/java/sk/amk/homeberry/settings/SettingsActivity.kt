@@ -16,7 +16,6 @@ import kotlinx.android.synthetic.main.content_settings.*
 import sk.amk.homeberry.R
 import sk.amk.homeberry.model.HomeberryRequest
 
-
 class SettingsActivity : AppCompatActivity() {
 
     private val viewModel: SettingsViewModel by viewModels()
@@ -95,17 +94,18 @@ class SettingsActivity : AppCompatActivity() {
     private fun exportSettings() {
         val uri = ConfigFileProvider.createFileUri(this, viewModel.createConfigJson())
 
-        val intent = Intent()
-        intent.action = Intent.ACTION_SEND;
-        intent.putExtra(Intent.EXTRA_STREAM, uri)
-        intent.type = "text/plain"
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = MIME_TYPE_JSON
+            putExtra(Intent.EXTRA_STREAM, uri)
+        }
         startActivity(Intent.createChooser(intent, getString(R.string.settings_export_message)))
     }
 
     private fun openFileChooser() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/json"
+            type = MIME_TYPE_JSON
         }
         startActivityForResult(intent, REQUEST_FILE_PICKER)
     }
@@ -128,5 +128,6 @@ class SettingsActivity : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_FILE_PICKER = 13
+        private const val MIME_TYPE_JSON = "application/json"
     }
 }
