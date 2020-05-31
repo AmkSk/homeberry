@@ -3,6 +3,7 @@ package sk.amk.homeberry.main
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.Menu
@@ -115,7 +116,7 @@ class MainActivity : AppCompatActivity() {
             positiveButton(res = R.string.yes) {
                 viewModel.callRequest(HomeberryRequest("Reboot", "reboot"))
             }
-            negativeButton(res = R.string.no)
+            negativeButton(res = R.string.cancel)
         }
     }
 
@@ -126,7 +127,7 @@ class MainActivity : AppCompatActivity() {
             positiveButton(res = R.string.yes) {
                 viewModel.callRequest(HomeberryRequest("Shutdown", "shutdown"))
             }
-            negativeButton(res = R.string.no)
+            negativeButton(res = R.string.cancel)
         }
     }
 
