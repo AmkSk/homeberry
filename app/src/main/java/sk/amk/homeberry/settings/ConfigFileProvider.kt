@@ -8,7 +8,6 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 /**
  * @author Andrej Martinák <andrej.martinak@gmail.com>
  */

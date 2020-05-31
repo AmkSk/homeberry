@@ -10,10 +10,12 @@ import androidx.room.PrimaryKey
  */
 @Entity
 data class HomeberryRequest(
-        var name: String = "",
-        var endpoint: String = "",
-        var openApp: Boolean = false,
-        var openAppPackageName: String = "") {
+    var name: String = "",
+    var endpoint: String = "",
+    var openApp: Boolean = false,
+    var openAppPackageName: String = ""
+) {
 
-    @PrimaryKey var id: Long = 0
+    @PrimaryKey
+    var id: Long = 0
 }

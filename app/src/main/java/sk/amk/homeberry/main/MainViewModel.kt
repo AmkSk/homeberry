@@ -11,7 +11,11 @@ import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logger
 import io.ktor.client.features.logging.Logging
 import io.ktor.client.request.get
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sk.amk.homeberry.HomeberryApp
 import sk.amk.homeberry.model.HomeberryRequest
 import java.net.ConnectException
@@ -25,8 +29,8 @@ class MainViewModel(val app: Application) : AndroidViewModel(app) {
 
     val requests = (app as HomeberryApp).db.requestDao().getAllLiveData()
     val baseUrl = (app as HomeberryApp).sharedPreferences.getString(
-            HomeberryApp.BASE_URL_KEY,
-            HomeberryApp.DEFAULT_BASE_URL
+        HomeberryApp.BASE_URL_KEY,
+        HomeberryApp.DEFAULT_BASE_URL
     )!!
     private var lastRunningJob: Job? = null
     private val httpClient = HttpClient {
