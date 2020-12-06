@@ -43,31 +43,8 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         title = ""
 
-        viewModel.requests.observe(this, { requests ->
-            txtEmptyState.isVisible = requests.isEmpty()
-            buttonOpenSettings.isVisible = requests.isEmpty()
-
-            if (requests.isNotEmpty()) {
-                generateButtons(requests)
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-                createShortcuts(requests)
-            }
-        })
-
-        viewModel.state.observe(this, { state ->
-            if (state !is MainState.RequestInProgress) {
-                progressDialog?.dismiss()
-            }
-
-            when (state) {
-                is MainState.RequestInProgress -> showProgressDialog(state.request!!)
-                is MainState.RequestSuccess -> handleSuccess(state.message, state.request!!)
-                is MainState.RequestFailure -> handleError(state.message, state.request!!)
-                is MainState.RequestFailureConnection -> showConnectionErrorDialog()
-            }
-        })
+        viewModel.requests.observe(this, this::observeRequests)
+        viewModel.state.observe(this, this::observeVmState)
 
         buttonOpenSettings.setOnClickListener { openSettings() }
     }
@@ -84,6 +61,47 @@ class MainActivity : AppCompatActivity() {
         progressDialog?.dismiss()
         viewModel.cancelRequest()
         super.onPause()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_main_power -> showShutDownDialog()
+            R.id.menu_main_restart -> showRebootDialog()
+            R.id.menu_main_settings -> openSettings()
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun observeVmState(state: MainState){
+        if (state !is MainState.RequestInProgress) {
+            progressDialog?.dismiss()
+        }
+
+        when (state) {
+            is MainState.RequestInProgress -> showProgressDialog(state.request!!)
+            is MainState.RequestSuccess -> handleSuccess(state.message, state.request!!)
+            is MainState.RequestFailure -> handleError(state.message, state.request!!)
+            is MainState.RequestFailureConnection -> showConnectionErrorDialog()
+        }
+    }
+
+    private fun observeRequests(requests: List<HomeberryRequest>) {
+        txtEmptyState.isVisible = requests.isEmpty()
+        buttonOpenSettings.isVisible = requests.isEmpty()
+
+        if (requests.isNotEmpty()) {
+            generateButtons(requests)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            createShortcuts(requests)
+        }
     }
 
     private fun generateButtons(requests: List<HomeberryRequest>) {
@@ -108,21 +126,6 @@ class MainActivity : AppCompatActivity() {
             BUTTON_MARGIN_DP,
             resources.displayMetrics
         ).toInt()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.menu_main_power -> showShutDownDialog()
-            R.id.menu_main_restart -> showRebootDialog()
-            R.id.menu_main_settings -> openSettings()
-        }
-
-        return super.onOptionsItemSelected(item)
     }
 
     private fun showRebootDialog() {

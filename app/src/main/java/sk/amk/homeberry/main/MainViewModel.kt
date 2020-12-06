@@ -26,14 +26,17 @@ import java.net.ConnectException
  */
 class MainViewModel(val app: Application) : AndroidViewModel(app) {
 
-    val state: MutableLiveData<MainState> = MutableLiveData()
-
-    val requests = (app as HomeberryApp).db.requestDao().getAllLiveData()
-    val baseUrl = (app as HomeberryApp).sharedPreferences.getString(
+    val baseUrl : String = (app as HomeberryApp).sharedPreferences.getString(
         HomeberryApp.BASE_URL_KEY,
         HomeberryApp.DEFAULT_BASE_URL
     )!!
+    val state: MutableLiveData<MainState> = MutableLiveData()
+    private val db = (app as HomeberryApp).db
+
+    val requests = db.requestDao().getAllLiveData()
+
     private var lastRunningJob: Job? = null
+
     private val httpClient = HttpClient {
         install(Logging) {
             logger = Logger.ANDROID
@@ -54,9 +57,7 @@ class MainViewModel(val app: Application) : AndroidViewModel(app) {
 
     fun callRequest(requestId: Long) {
         val request = runBlocking {
-            withContext(Dispatchers.IO) {
-                (app as HomeberryApp).db.requestDao().getById(requestId)
-            }
+            db.requestDao().getById(requestId)
         }
 
         state.postValue(MainState.RequestInProgress(request))

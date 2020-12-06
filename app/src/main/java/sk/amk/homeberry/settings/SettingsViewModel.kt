@@ -93,7 +93,7 @@ class SettingsViewModel(val app: Application) : AndroidViewModel(app) {
                     db.requestDao().insertAll(requests)
                 }
                 updateBaseUrl(this.baseUrl)
-                updateUi.postValue(true)
+                updateUi.value = true
             }
         } catch (invalidConfigException: JsonDataException) {
             errorState.value = SettingsErrorSate.ERROR_IMPORT_INVALID_CONFIG
