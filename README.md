@@ -9,6 +9,7 @@ HomeBerry is a simple Android app that allows you to control your Raspberry PI t
 - Simple and nice interface for calling requests (HTTP GET)
 - Settings screen for creating / editing existing requests
 - Option to import / export your configuration to a json file
+- Android App Shortcuts - launch your requests directly from the launcher (only first four requests will show up)
 
 ## How to install
 
