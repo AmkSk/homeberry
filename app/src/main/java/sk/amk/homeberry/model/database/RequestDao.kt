@@ -1,7 +1,11 @@
 package sk.amk.homeberry.model.database
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import sk.amk.homeberry.model.HomeberryRequest
 
 /**
@@ -9,6 +13,9 @@ import sk.amk.homeberry.model.HomeberryRequest
  */
 @Dao
 interface RequestDao {
+    @Query("SELECT * FROM homeberryrequest WHERE id = :id")
+    fun getById(id: Long): HomeberryRequest
+
     @Query("SELECT * FROM homeberryrequest")
     fun getAll(): List<HomeberryRequest>
 
