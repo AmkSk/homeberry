@@ -15,6 +15,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import sk.amk.homeberry.HomeberryApp
 import sk.amk.homeberry.model.HomeberryRequest
@@ -25,14 +26,17 @@ import java.net.ConnectException
  */
 class MainViewModel(val app: Application) : AndroidViewModel(app) {
 
-    val state: MutableLiveData<MainState> = MutableLiveData()
-
-    val requests = (app as HomeberryApp).db.requestDao().getAllLiveData()
-    val baseUrl = (app as HomeberryApp).sharedPreferences.getString(
+    val baseUrl : String = (app as HomeberryApp).sharedPreferences.getString(
         HomeberryApp.BASE_URL_KEY,
         HomeberryApp.DEFAULT_BASE_URL
     )!!
+    val state: MutableLiveData<MainState> = MutableLiveData()
+    private val db = (app as HomeberryApp).db
+
+    val requests = db.requestDao().getAllLiveData()
+
     private var lastRunningJob: Job? = null
+
     private val httpClient = HttpClient {
         install(Logging) {
             logger = Logger.ANDROID
@@ -46,20 +50,39 @@ class MainViewModel(val app: Application) : AndroidViewModel(app) {
 
         lastRunningJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                try {
-                    var url = ""
-
-                    if (!baseUrl.contains("http") && !baseUrl.contains("https")) {
-                        url += "http://"
-                    }
-
-                    url += "$baseUrl/${request.endpoint}"
-                    val response = httpClient.get<String>(urlString = url)
-                    state.postValue(MainState.RequestSuccess(response, request))
-                } catch (exception: Exception) {
-                    handleEndpointError(exception, request)
-                }
+                sendRequest(request)
             }
+        }
+    }
+
+    fun callRequest(requestId: Long) {
+        val request = runBlocking {
+            db.requestDao().getById(requestId)
+        }
+
+        state.postValue(MainState.RequestInProgress(request))
+        lastRunningJob?.cancel()
+
+        lastRunningJob = viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                sendRequest(request)
+            }
+        }
+    }
+
+    private suspend fun sendRequest(request: HomeberryRequest) {
+        try {
+            var url = ""
+
+            if (!baseUrl.contains("http") && !baseUrl.contains("https")) {
+                url += "http://"
+            }
+
+            url += "$baseUrl/${request.endpoint}"
+            val response = httpClient.get<String>(urlString = url)
+            state.postValue(MainState.RequestSuccess(response, request))
+        } catch (exception: Exception) {
+            handleEndpointError(exception, request)
         }
     }
 

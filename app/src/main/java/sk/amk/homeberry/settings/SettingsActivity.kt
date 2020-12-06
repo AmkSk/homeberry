@@ -9,10 +9,12 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
-import kotlinx.android.synthetic.main.activity_settings.*
-import kotlinx.android.synthetic.main.content_settings.*
+import kotlinx.android.synthetic.main.activity_settings.fab
+import kotlinx.android.synthetic.main.activity_settings.toolbar
+import kotlinx.android.synthetic.main.content_settings.editTextBaseUrl
+import kotlinx.android.synthetic.main.content_settings.layoutEndpointsContainer
+import kotlinx.android.synthetic.main.content_settings.scrollViewSettings
 import sk.amk.homeberry.R
 import sk.amk.homeberry.model.HomeberryRequest
 
@@ -27,38 +29,15 @@ class SettingsActivity : AppCompatActivity() {
         setTitle(R.string.settings_title)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        viewModel.updateUi.observe(this, Observer {
-            layoutEndpointsContainer.removeAllViews()
-            viewModel.requests.forEach {
-                layoutEndpointsContainer.addView(
-                        SettingsRequestView.create(this, viewModel, it)
-                )
-            }
-            editTextBaseUrl.setText(viewModel.baseUrl.value)
-        })
-
-        viewModel.errorState.observe(this, Observer { state ->
-            when (state) {
-                SettingsErrorSate.ERROR_IMPORT_INVALID_JSON -> showInvalidJsonFileErrorDialog()
-                SettingsErrorSate.ERROR_IMPORT_INVALID_CONFIG -> showInvalidConfigErrorDialog()
-            }
-        })
+        viewModel.updateUi.observe(this, this::observeUiUpdate)
+        viewModel.errorState.observe(this, this::observeErrorState)
 
         editTextBaseUrl.setText(viewModel.baseUrl.value)
         editTextBaseUrl.addTextChangedListener {
             viewModel.updateBaseUrl(it.toString())
         }
 
-        fab.setOnClickListener {
-            val request = HomeberryRequest()
-            viewModel.createNewRequest(request)
-            layoutEndpointsContainer.addView(
-                    SettingsRequestView.create(this, viewModel, request)
-            )
-            scrollViewSettings.post {
-                scrollViewSettings.fullScroll(View.FOCUS_DOWN)
-            }
-        }
+        fab.setOnClickListener { createNewRequest() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -79,7 +58,7 @@ class SettingsActivity : AppCompatActivity() {
         if (requestCode == REQUEST_FILE_PICKER && resultCode == Activity.RESULT_OK) {
             data?.data?.also { uri ->
                 val content = contentResolver.openInputStream(uri)
-                        ?.bufferedReader().use { it?.readText() }
+                    ?.bufferedReader().use { it?.readText() }
                 if (content == null) {
                     showInvalidJsonFileErrorDialog()
                 } else {
@@ -88,6 +67,34 @@ class SettingsActivity : AppCompatActivity() {
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
+    private fun observeUiUpdate(update: Boolean){
+        layoutEndpointsContainer.removeAllViews()
+        viewModel.requests.forEach {
+            layoutEndpointsContainer.addView(
+                SettingsRequestView.create(this, viewModel, it)
+            )
+        }
+        editTextBaseUrl.setText(viewModel.baseUrl.value)
+    }
+
+    private fun observeErrorState(state: SettingsErrorSate) {
+        when (state) {
+            SettingsErrorSate.ERROR_IMPORT_INVALID_JSON -> showInvalidJsonFileErrorDialog()
+            SettingsErrorSate.ERROR_IMPORT_INVALID_CONFIG -> showInvalidConfigErrorDialog()
+        }
+    }
+
+    private fun createNewRequest() {
+        val request = HomeberryRequest()
+        viewModel.createNewRequest(request)
+        layoutEndpointsContainer.addView(
+            SettingsRequestView.create(this, viewModel, request)
+        )
+        scrollViewSettings.post {
+            scrollViewSettings.fullScroll(View.FOCUS_DOWN)
         }
     }
 

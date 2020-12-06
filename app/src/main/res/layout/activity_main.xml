@@ -62,7 +62,6 @@
                 android:layout_marginLeft="32dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginRight="32dp"
-                android:fontFamily="@font/font_awesome_5_brands"
                 android:text="@string/main_empty_state_button" />
 
         </LinearLayout>
