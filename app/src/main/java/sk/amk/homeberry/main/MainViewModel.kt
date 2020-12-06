@@ -15,6 +15,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import sk.amk.homeberry.HomeberryApp
 import sk.amk.homeberry.model.HomeberryRequest
@@ -46,20 +47,41 @@ class MainViewModel(val app: Application) : AndroidViewModel(app) {
 
         lastRunningJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                try {
-                    var url = ""
-
-                    if (!baseUrl.contains("http") && !baseUrl.contains("https")) {
-                        url += "http://"
-                    }
-
-                    url += "$baseUrl/${request.endpoint}"
-                    val response = httpClient.get<String>(urlString = url)
-                    state.postValue(MainState.RequestSuccess(response, request))
-                } catch (exception: Exception) {
-                    handleEndpointError(exception, request)
-                }
+                sendRequest(request)
             }
+        }
+    }
+
+    fun callRequest(requestId: Long) {
+        val request = runBlocking {
+            withContext(Dispatchers.IO) {
+                (app as HomeberryApp).db.requestDao().getById(requestId)
+            }
+        }
+
+        state.postValue(MainState.RequestInProgress(request))
+        lastRunningJob?.cancel()
+
+        lastRunningJob = viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                sendRequest(request)
+            }
+        }
+    }
+
+    private suspend fun sendRequest(request: HomeberryRequest) {
+        try {
+            var url = ""
+
+            if (!baseUrl.contains("http") && !baseUrl.contains("https")) {
+                url += "http://"
+            }
+
+            url += "$baseUrl/${request.endpoint}"
+            val response = httpClient.get<String>(urlString = url)
+            state.postValue(MainState.RequestSuccess(response, request))
+        } catch (exception: Exception) {
+            handleEndpointError(exception, request)
         }
     }
 

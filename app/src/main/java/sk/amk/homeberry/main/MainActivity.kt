@@ -3,7 +3,11 @@ package sk.amk.homeberry.main
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.graphics.Typeface
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.drawable.Icon
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.Menu
@@ -14,9 +18,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onCancel
 import com.afollestad.materialdialogs.customview.customView
@@ -39,16 +43,20 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         title = ""
 
-        viewModel.requests.observe(this, Observer { requests ->
+        viewModel.requests.observe(this, { requests ->
             txtEmptyState.isVisible = requests.isEmpty()
             buttonOpenSettings.isVisible = requests.isEmpty()
 
             if (requests.isNotEmpty()) {
                 generateButtons(requests)
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+                createShortcuts(requests)
+            }
         })
 
-        viewModel.state.observe(this, Observer { state ->
+        viewModel.state.observe(this, { state ->
             if (state !is MainState.RequestInProgress) {
                 progressDialog?.dismiss()
             }
@@ -62,6 +70,14 @@ class MainActivity : AppCompatActivity() {
         })
 
         buttonOpenSettings.setOnClickListener { openSettings() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        intent.dataString?.toLong()?.let {
+            viewModel.callRequest(it)
+        }
     }
 
     override fun onPause() {
@@ -157,6 +173,11 @@ class MainActivity : AppCompatActivity() {
                 ).show()
             }
         }
+
+        // close when app launched from shortcut
+        if (intent.dataString != null) {
+            finish()
+        }
     }
 
     private fun handleError(errorMessage: String, request: HomeberryRequest) {
@@ -180,6 +201,40 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, SettingsActivity::class.java))
     }
 
+    @RequiresApi(Build.VERSION_CODES.N_MR1)
+    private fun createShortcuts(requests: List<HomeberryRequest>) {
+        val shortcutManager = getSystemService(ShortcutManager::class.java)
+        shortcutManager.removeAllDynamicShortcuts()
+
+        val shortcuts: MutableList<ShortcutInfo> = mutableListOf()
+
+        val shortcutsCount = if (requests.size >= MAX_DYNAMIC_SHORTCUTS_COUNT) {
+            MAX_DYNAMIC_SHORTCUTS_COUNT
+        } else {
+            requests.size
+        }
+
+        for (i in 0 until shortcutsCount) {
+            val request = requests[i]
+
+            val shortcut = ShortcutInfo.Builder(this, request.id.toString())
+                .setShortLabel(request.name)
+                .setLongLabel(request.name)
+                .setIcon(Icon.createWithResource(this, R.drawable.ic_icons8_raspberry_pi))
+                .setIntent(
+                    Intent(this, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        action = Intent.ACTION_VIEW
+                        data = Uri.parse(request.id.toString())
+                    })
+                .build()
+
+            shortcuts.add(shortcut)
+        }
+
+        shortcutManager!!.dynamicShortcuts = shortcuts
+    }
+
     /** Open another app.
      * @param context current Context, like Activity, App, or Service
      * @param packageName the full package name of the app to open
@@ -199,5 +254,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val BUTTON_MARGIN_DP = 16f
+        const val MAX_DYNAMIC_SHORTCUTS_COUNT = 4
     }
 }
