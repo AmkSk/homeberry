@@ -9,13 +9,10 @@ import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import sk.amk.homeberry.HomeberryApp
 import sk.amk.homeberry.HomeberryApp.Companion.BASE_URL_KEY
 import sk.amk.homeberry.HomeberryApp.Companion.DEFAULT_BASE_URL
-
 import sk.amk.homeberry.model.Config
 import sk.amk.homeberry.model.HomeberryRequest
 
@@ -43,10 +40,8 @@ class SettingsViewModel(val app: Application) : AndroidViewModel(app) {
         )!!
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                requests = db.requestDao().getAll().toMutableList()
-                updateUi.postValue(true)
-            }
+            requests = db.requestDao().getAll().toMutableList()
+            updateUi.value = true
         }
     }
 
@@ -69,19 +64,15 @@ class SettingsViewModel(val app: Application) : AndroidViewModel(app) {
         this.requests[index] = request
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                db.requestDao().insert(request)
-            }
+            db.requestDao().insert(request)
         }
     }
 
     fun deleteRequest(request: HomeberryRequest) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                db.requestDao().delete(request)
-                requests.remove(request)
-                updateUi.postValue(true)
-            }
+            db.requestDao().delete(request)
+            requests.remove(request)
+            updateUi.value = true
         }
     }
 
@@ -98,10 +89,8 @@ class SettingsViewModel(val app: Application) : AndroidViewModel(app) {
             jsonAdapter.fromJson(configJson)?.run {
                 this@SettingsViewModel.requests = requests.toMutableList()
                 viewModelScope.launch {
-                    withContext(Dispatchers.IO) {
-                        db.requestDao().deleteAll()
-                        db.requestDao().insertAll(requests)
-                    }
+                    db.requestDao().deleteAll()
+                    db.requestDao().insertAll(requests)
                 }
                 updateBaseUrl(this.baseUrl)
                 updateUi.postValue(true)
